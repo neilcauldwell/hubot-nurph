@@ -1,0 +1,20 @@
+{
+  "name":        "hubot-nurph",
+  "version":     "0.1",
+  "author":      "Neil Cauldwell <neilcauldwell@gmail.com>",
+  "keywords":    "github hubot nurph adapter",
+  "description": "Nurph adapter for hubot",
+  "licenses":     [{
+    "type":       "MIT",
+    "url":        "http://github.com/neilcauldwell/hubot-nurph/raw/master/LICENSE"
+  }],
+  "repository" : {
+    "type" : "git",
+    "url" : "http://github.com/neilcauldwell/hubot-nurph.git"
+  },
+  "devDependencies": {
+    "coffee-script": "1.1.3"
+  },
+  "main": "./src/nurph",
+  "engine": "node > 0.6.0 < 0.7.0"
+}
