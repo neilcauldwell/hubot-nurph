@@ -5,7 +5,3 @@
 # Pull request?
 
 Yes.
-
-# Credit
-
-Originally contributed to hubot by [Victor Castell](https://github.com/victorcoder).
