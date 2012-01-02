@@ -20,21 +20,11 @@ You will need to set some environment variables to use this adapter.
 
 ### Heroku
 
-    % heroku config:add HUBOT_NURPH_TWITTER_ACCOUNT="account"
     % heroku config:add HUBOT_NURPH_CHANNELS="channel, channel"
-    % heroku config:add HUBOT_NURPH_KEY="key"
-    % heroku config:add HUBOT_NURPH_SECRET="secret"
-    % heroku config:add HUBOT_NURPH_TOKEN="token"
-    % heroku config:add HUBOT_NURPH_TOKEN_SECRET="secret"
 
 ### Non-Heroku environment variables
 
-    % export HUBOT_NURPH_TWITTER_ACCOUNT="account"
     % export HUBOT_NURPH_CHANNELS="channel, channel"
-    % export HUBOT_NURPH_KEY="key"
-    % export HUBOT_NURPH_SECRET="secret"
-    % export HUBOT_NURPH_TOKEN="token"
-    % export HUBOT_NURPH_TOKEN_SECRET="secret"
 
 ## Contribute
 

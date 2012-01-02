@@ -17,7 +17,6 @@ class Nurph extends Adapter
 
   run: ->
     self = @
-    token = process.env.HUBOT_NURPH_TOKEN
     channels = process.env.HUBOT_NURPH_CHANNELS.split(',')
 
     bot = new NurphClient()
@@ -29,7 +28,7 @@ class Nurph extends Adapter
       , 25000
 
     bot.on "Ready", (channel)->
-      message = {"channel": channel, "token": token, "type": "connect"}
+      message = {"channel": channel, "type": "connect"}
       bot.write channel, message
       ping channel
 
@@ -70,7 +69,7 @@ class NurphClient extends EventEmitter
   constructor: ->
     @domain        = 'nurph.com'
     @encoding      = 'utf8'
-    @port          = 8500
+    @port          = ''
     @sockets       = {}
 
   createSocket: (channel) ->
