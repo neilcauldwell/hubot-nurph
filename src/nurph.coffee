@@ -5,6 +5,7 @@ HTTPS        = require 'https'
 EventEmitter = require('events').EventEmitter
 net          = require('net')
 tls          = require('tls')
+xstreamly    = require('xstreamly-client')
 
 class Nurph extends Adapter
   send: (user, strings...) ->
