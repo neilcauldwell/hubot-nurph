@@ -59,7 +59,7 @@ exports.use = (robot) ->
   new Nurph robot
 
 class NurphClient extends EventEmitter
-  constructor: ->
+  constructor: (options) ->
     if options.key? and options.token? and options.channels?
       @key        = options.key
       @token      = options.token
