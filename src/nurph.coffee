@@ -45,7 +45,7 @@ class Nurph extends Adapter
       unless self.name == message.user.name
         self.receive new Robot.LeaveMessage self.userForMessage(channel, message)
 
-    for channel in channels
+    for channel in options.channels
       bot.sockets[channel] = bot.createSocket(channel)
 
     @bot = bot
