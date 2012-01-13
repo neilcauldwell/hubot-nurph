@@ -4,7 +4,6 @@ Adapter      = require('hubot').adapter()
 HTTPS        = require 'https'
 EventEmitter = require('events').EventEmitter
 net          = require('net')
-tls          = require('tls')
 xstreamly    = require('xstreamly-client')
 
 class Nurph extends Adapter
@@ -18,20 +17,13 @@ class Nurph extends Adapter
 
   run: ->
     self = @
-    channels = process.env.HUBOT_NURPH_CHANNELS.split(',')
+    options =
+      key : process.env.HUBOT_NURPH_KEY
+      token : process.env.HUBOT_NURPH_TOKEN
+      channels : process.env.HUBOT_NURPH_CHANNELS.split(',')
 
-    bot = new NurphClient()
+    bot = new NurphClient(options)
     console.log bot
-
-    ping = (channel)->
-      setInterval ->
-        bot.write channel, {type: "ping"}
-      , 25000
-
-    bot.on "Ready", (channel)->
-      message = {"channel": channel, "type": "connect"}
-      bot.write channel, message
-      ping channel
 
     bot.on "Users", (message)->
       for user in message.users
@@ -68,20 +60,24 @@ exports.use = (robot) ->
 
 class NurphClient extends EventEmitter
   constructor: ->
-    @domain        = 'nurph.com'
-    @encoding      = 'utf8'
-    @port          = ''
-    @sockets       = {}
+    if options.key? and options.token? and options.channels?
+      @key        = options.key
+      @token      = options.token
+      @channels   = options.channels
+      @client     = new xstreamly(@key, @token)
+
+    else
+      throw new Error("Not enough parameters provided. I need a key, a token, and at least one channel.")
 
   createSocket: (channel) ->
     self = @
 
-    socket = tls.connect @port, @domain, ->
+    socket = @client.subscribe channel, { includeMyMessages:true } , ->
       console.log("Connected to channel #{channel}.")
       self.emit "Ready", channel
 
     #callback
-    socket.on 'data', (data) ->
+    socket.bind_all (eventType, data) ->
       for line in data.split '\n'
         message = if line is '' then null else JSON.parse(line)
 
@@ -98,15 +94,6 @@ class NurphClient extends EventEmitter
           if message.type == "error"
             self.disconnect channel, message.message
 
-    socket.addListener "eof", ->
-      console.log "eof"
-    socket.addListener "timeout", ->
-      console.log "timeout"
-    socket.addListener "end", ->
-      console.log "end"
-
-    socket.setEncoding @encoding
-
     socket
 
   write: (channel, arguments) ->
@@ -117,7 +104,7 @@ class NurphClient extends EventEmitter
       return @disconnect 'cannot send with readyState: ' + @sockets[channel].readyState
 
     message = JSON.stringify(arguments)
-    console.log "To room #{channel}: #{message}"
+    console.log "To channel #{channel}: #{message}"
 
     @sockets[channel].write message, @encoding
 
