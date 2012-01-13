@@ -65,7 +65,7 @@ class NurphClient extends EventEmitter
       @token      = options.token
       @channels   = options.channels
       @client     = new xstreamly(@key, @token)
-      @sockets = {}
+      @sockets    = {}
 
     else
       throw new Error("Not enough parameters provided. I need a key, a token, and at least one channel.")
