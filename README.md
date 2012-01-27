@@ -20,11 +20,21 @@ You will need to set some environment variables to use this adapter.
 
 ### Heroku
 
-    % heroku config:add HUBOT_NURPH_CHANNELS="channel, channel"
+    % heroku config:add HUBOT_NURPH_KEY="key"
+    % heroku config:add HUBOT_NURPH_TOKEN="token"
+    % heroku config:add HUBOT_NURPH_USER_ID="id"
+    % heroku config:add HUBOT_NURPH_USER_NAME="name"
+    % heroku config:add HUBOT_NURPH_USER_AVATAR="url"
+    % heroku config:add HUBOT_NURPH_CHANNELS="channel1, channel2"
 
 ### Non-Heroku environment variables
 
-    % export HUBOT_NURPH_CHANNELS="channel, channel"
+    % export HUBOT_NURPH_KEY="key"
+    % export HUBOT_NURPH_TOKEN="token"
+    % export HUBOT_NURPH_USER_ID="id"
+    % export HUBOT_NURPH_USER_NAME="name"
+    % export HUBOT_NURPH_USER_AVATAR="url"
+    % export HUBOT_NURPH_CHANNELS="channel1, channel2"
 
 ## Contribute
 

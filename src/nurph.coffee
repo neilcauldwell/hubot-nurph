@@ -73,27 +73,30 @@ class NurphClient extends EventEmitter
   createSocket: (channel) ->
     self = @
 
-    socket = @client.subscribe channel, { includeMyMessages:true } , ->
-      console.log("Connected to channel #{channel}.")
-      self.emit "Ready", channel
+    socket = @client.subscribe channel, {
+      includeMyMessages:true,
+      userId: process.env.HUBOT_NURPH_USER_ID,
+      userInfo: {
+        name: process.env.HUBOT_NURPH_USER_NAME,
+        profilePic: process.env.HUBOT_NURPH_USER_AVATAR
+      }
+    } , ->
+    console.log("Connected to channel #{channel}.")
+    self.emit "Ready", channel
 
     #callback
     socket.bind_all (eventType, data) ->
-      for line in data.split '\n'
-        message = if line is '' then null else JSON.parse(line)
-
-        if message
-          console.log "From channel #{channel}: #{line}"
-          if message.type == "users"
-            self.emit "Users", message
-          if message.type == "message"
-            self.emit "TextMessage", channel, message
-          if message.type == "join"
-            self.emit "EnterMessage", channel, message
-          if message.type == "leave"
-            self.emit "LeaveMessage", channel, message
-          if message.type == "error"
-            self.disconnect channel, message.message
+      console.log "From channel #{channel}: #{data.sender.name}: #{data.content}"
+      if message.type == "users"
+        self.emit "Users", message
+      if message.type == "message"
+        self.emit "TextMessage", channel, message
+      if message.type == "join"
+        self.emit "EnterMessage", channel, message
+      if message.type == "leave"
+        self.emit "LeaveMessage", channel, message
+      if message.type == "error"
+        self.disconnect channel, message.message
 
     socket
 
@@ -112,4 +115,5 @@ class NurphClient extends EventEmitter
   disconnect: (channel, why) ->
     if @sockets[channel] != 'closed'
       @sockets[channel]
+      @client.stop()
       console.log 'disconnected (reason: ' + why + ')'
