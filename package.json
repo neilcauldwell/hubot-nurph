@@ -1,6 +1,6 @@
 {
   "name":        "hubot-nurph",
-  "version":     "0.0.4",
+  "version":     "0.0.5",
   "author":      "Neil Cauldwell <neilcauldwell@gmail.com>",
   "keywords":    "github hubot nurph adapter",
   "description": "Nurph adapter for hubot",
