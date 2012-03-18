@@ -4,12 +4,34 @@ Adapter      = require('hubot').adapter()
 HTTPS        = require 'https'
 EventEmitter = require('events').EventEmitter
 net          = require('net')
-xstreamly    = require('xstreamly-client')
+Pusher    	 = require('node-pusher')
 
 class Nurph extends Adapter
   send: (user, strings...) ->
     strings.forEach (str) =>
-      @bot.write user.channel, {"type": "message", "content": str}
+      # Example attributes published to a Pusher channel...
+      #
+      #   "position":452
+      #   "retracted":false
+      #   "created_at":"2012-01-27T17:33:24+00:00"
+      #   "sender": {
+      # 	  "avatar_url":
+      # 	  "name":
+      # 	  "location":"on Nurph, SMS, Twitter, & Web."
+      # 	  "url":"http://a1.twimg.com/profile_images/1450887565/AZO_glow_normal.png"
+      # 	  "id":4
+      # 	  "display_name":"Nurph"
+      # 	  "time_zone":null
+      # 	  "status":null
+      # 	  "biography":null
+      # 	 }
+      # 	"id":6983
+      # 	"type":"remark"
+      # 	"content":"@NeilCauldwell welcome to the #pizza Channel"
+      # 	"member":null
+      #
+      console.log "I'm trying to send a message to channel: #{user.channel} with type:'remark', content:#{str}, created_at:#{(new Date()).toString()}, sender:{ avatar_url:#{process.env.HUBOT_NURPH_USER_AVATAR}, name:#{process.env.HUBOT_NURPH_USER_NAME} }"
+      @bot.write user.channel, { "type": "remark", "content": str, "created_at": (new Date()).toString(), "sender":{ "avatar_url":process.env.HUBOT_NURPH_USER_AVATAR, "name":process.env.HUBOT_NURPH_USER_NAME } }
 
   reply: (user, strings...) ->
     strings.forEach (str) =>
@@ -18,31 +40,32 @@ class Nurph extends Adapter
   run: ->
     self = @
     options =
-      key : process.env.HUBOT_NURPH_KEY
-      token : process.env.HUBOT_NURPH_TOKEN
+      app_id : process.env.HUBOT_NURPH_APP_ID
+      app_key : process.env.HUBOT_NURPH_APP_KEY
+      app_secret : process.env.HUBOT_NURPH_APP_SECRET
+      user_id : process.env.HUBOT_NURPH_USER_ID
+      user_name : process.env.HUBOT_NURPH_USER_NAME
+      user_avatar : process.env.HUBOT_NURPH_USER_AVATAR
       channels : process.env.HUBOT_NURPH_CHANNELS.split(',')
 
     bot = new NurphClient(options)
     console.log bot
 
-    bot.on "Users", (message)->
-      for user in message.users
-        self.userForId(user.id, user)
-
     bot.on "TextMessage", (channel, message)->
-      unless self.name == message.user.name
+      unless self.robot.name == message.sender.name
         # Replace "@mention" with "mention: ", case-insensitively
-        regexp = new RegExp "^@#{self.name}", 'i'
-        content = message.content.replace(regexp, "#{self.name}:")
+        regexp = new RegExp "^@#{self.robot.name}", 'i'
+        content = message.content.replace(regexp, "#{self.robot.name}:")
 
         self.receive new Robot.TextMessage self.userForMessage(channel, message), content
+        console.log "I received a message of channel: #{channel}, message.type: #{message.type} and content: #{content}."
 
     bot.on "EnterMessage", (channel, message) ->
-      unless self.name == message.user.name
+      unless self.robot.name == message.sender.name
         self.receive new Robot.EnterMessage self.userForMessage(channel, message)
 
     bot.on "LeaveMessage", (channel, message) ->
-      unless self.name == message.user.name
+      unless self.robot.name == message.sender.name
         self.receive new Robot.LeaveMessage self.userForMessage(channel, message)
 
     for channel in options.channels
@@ -51,7 +74,7 @@ class Nurph extends Adapter
     @bot = bot
 
   userForMessage: (channel, message)->
-    author = @userForId(message.user.id, message.user)
+    author = @userForId(message.sender.id, message.sender)
     author.channel = channel
     author
 
@@ -60,21 +83,26 @@ exports.use = (robot) ->
 
 class NurphClient extends EventEmitter
   constructor: (options) ->
-    if options.key? and options.token? and options.channels?
-      @key        = options.key
-      @token      = options.token
+    if options.app_id? and options.app_key? and options.app_secret? and options.user_id? and options.user_name? and options.user_avatar? and options.channels?
+      @app_id     = options.app_id
+      @app_key    = options.app_key
+      @app_secret = options.app_secret
       @channels   = options.channels
-      @client     = new xstreamly(@key, @token)
+      @client     = new Pusher({
+        appId: @app_id,
+        key: @app_key,
+        secret: @app_secret
+      })
       @sockets    = {}
 
     else
-      throw new Error("Not enough parameters provided. I need a key, a token, and at least one channel.")
+      throw new Error("Not enough parameters provided. I need an app_id, an app_key, an app_secret, a user_id, a user_name, a user_avatar_url, and at least one channel.")
 
   createSocket: (channel) ->
     self = @
+    console.log "@client = #{@client}"
 
     socket = @client.subscribe channel, {
-      includeMyMessages:true,
       userId: process.env.HUBOT_NURPH_USER_ID,
       userInfo: {
         name: process.env.HUBOT_NURPH_USER_NAME,
@@ -85,18 +113,15 @@ class NurphClient extends EventEmitter
     self.emit "Ready", channel
 
     #callback
-    socket.bind_all (eventType, data) ->
-      console.log "From channel #{channel}: #{data.sender.name}: #{data.content}"
-      if message.type == "users"
-        self.emit "Users", message
-      if message.type == "message"
+    socket.bind_all (eventType, message) ->
+      console.log "eventType: #{eventType}"
+      console.log "From channel #{channel}: #{message.sender.name}: #{message.content}"
+      if message.type == "remark"
         self.emit "TextMessage", channel, message
-      if message.type == "join"
+      if message.type == "pusher:member_added"
         self.emit "EnterMessage", channel, message
-      if message.type == "leave"
+      if message.type == "pusher:member_removed"
         self.emit "LeaveMessage", channel, message
-      if message.type == "error"
-        self.disconnect channel, message.message
 
     socket
 
@@ -104,13 +129,10 @@ class NurphClient extends EventEmitter
     self = @
     @sockets[channel]
 
-    if @sockets[channel].readyState != 'open'
-      return @disconnect 'cannot send with readyState: ' + @sockets[channel].readyState
-
     message = JSON.stringify(arguments)
     console.log "To channel #{channel}: #{message}"
 
-    @sockets[channel].write message, @encoding
+    @sockets[channel].trigger 'remark', message
 
   disconnect: (channel, why) ->
     if @sockets[channel] != 'closed'
