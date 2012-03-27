@@ -1,6 +1,6 @@
 {
   "name":        "hubot-nurph",
-  "version":     "0.0.5",
+  "version":     "0.0.6",
   "author":      "Neil Cauldwell <neilcauldwell@gmail.com>",
   "keywords":    "github hubot nurph adapter",
   "description": "Nurph adapter for hubot",
@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "hubot": ">=2.0.7",
-    "xstreamly-client": ">= 0.1.3"
+    "log": ">= 1.1.1",
+    "express": ">=2.5.8"
   },
   "devDependencies": {
     "coffee-script": "1.1.3"
